@@ -44,6 +44,30 @@ class AnnouncementController extends Controller
         return redirect()->route('dashboard')->with('success', 'Pengumuman berhasil diterbitkan!');
     }
 
+    //5. EDIT: Menampilkan form edit pengumuman
+    public function edit(Announcement $announcement)
+    {
+        return view('announcements.edit', compact('announcement'));
+    }
+
+    //6. UPDATE: Memperbarui data pengumuman di database
+    public function update(Request $request, Announcement $announcement)
+    {
+        $request->validate([
+            'title'   => 'required|max:255',
+            'content' => 'required',
+            'type'    => 'required|in:info,urgent,warning',
+        ]);
+
+        $announcement->update([
+            'title'     => $request->title,
+            'content'   => $request->content,
+            'type'      => $request->type,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Pengumuman berhasil diperbarui!');
+    }
+
     //4. DESTROY: Menghapus pengumuman
     public function destroy(Announcement $announcement)
     {
