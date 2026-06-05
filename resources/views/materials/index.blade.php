@@ -270,7 +270,12 @@
         btn.disabled = true;
         container.innerHTML = '<p class="col-span-full text-center text-gray-500">Sedang mencari...</p>';
 
-        fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=4`)
+        const apiKey = "{{ env('GOOGLE_BOOKS_API_KEY') }}";
+        const url = apiKey 
+            ? `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=4&key=${apiKey}`
+            : `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=4`;
+
+        fetch(url)
             .then(response => response.json())
             .then(data => {
                 container.innerHTML = ''; 
