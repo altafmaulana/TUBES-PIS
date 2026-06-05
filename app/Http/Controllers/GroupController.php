@@ -12,14 +12,23 @@ class GroupController extends Controller
 {
     public function index()
     {
-        $subjects = Group::all();
-        $user = Auth::user();
+        try {
+            $subjects = \App\Models\Group::all();
+            $user = \Illuminate\Support\Facades\Auth::user();
 
-        $myProjectProgress = GroupTeam::where('leader_name', $user->name)
-                                    ->orWhereJsonContains('members', $user->name)
-                                    ->get();
+            $myProjectProgress = \App\Models\GroupTeam::where('leader_name', $user->name)
+                                        ->orWhereJsonContains('members', $user->name)
+                                        ->get();
 
-        return view('groups.index', compact('subjects', 'myProjectProgress'));
+            return view('groups.index', compact('subjects', 'myProjectProgress'));
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 
     public function directory()
