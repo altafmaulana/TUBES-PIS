@@ -12,23 +12,14 @@ class GroupController extends Controller
 {
     public function index()
     {
-        try {
-            $subjects = \App\Models\Group::all();
-            $user = \Illuminate\Support\Facades\Auth::user();
+        $subjects = Group::all();
+        $user = Auth::user();
 
-            $myProjectProgress = \App\Models\GroupTeam::where('leader_name', $user->name)
-                                        ->orWhereJsonContains('members', $user->name)
-                                        ->get();
+        $myProjectProgress = GroupTeam::where('leader_name', $user->name)
+                                    ->orWhereJsonContains('members', $user->name)
+                                    ->get();
 
-            return view('groups.index', compact('subjects', 'myProjectProgress'));
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-        }
+        return view('groups.index', compact('subjects', 'myProjectProgress'));
     }
 
     public function directory()
@@ -73,20 +64,26 @@ class GroupController extends Controller
 
     public function store(Request $request)
     {
+        // PERBAIKAN: Melonggarkan aturan agar 'members' bisa menerima string teks biasa terlebih dahulu
         $validated = $request->validate([
             'group_id'    => 'required|exists:groups,id',
             'name'        => 'required|string|max:255',
             'leader_name' => 'required|string|max:255',
-            'members'     => 'required|array',
-            'members.*'   => 'string',
+            'members'     => 'required', 
             'topic'       => 'required|string|max:255',
         ]);
+
+        // PERBAIKAN: Jika input 'members' berupa string teks pisahan koma, ubah otomatis menjadi Array bersih
+        $membersData = $request->input('members');
+        if (is_string($membersData)) {
+            $membersData = array_map('trim', explode(',', $membersData));
+        }
 
         GroupTeam::create([
             'group_id'    => $validated['group_id'],
             'name'        => $validated['name'],
             'leader_name' => $validated['leader_name'],
-            'members'     => $validated['members'],
+            'members'     => $membersData, // Menyimpan dalam format array ter-konversi
             'topic'       => $validated['topic'],
             'report_link' => null, 
             'ppt_link'    => null, 
